@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clip-Path Generator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#0b1120;color:white;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+.wrap{background:#1e293b;padding:20px;border-radius:12px;width:350px;text-align:center}
+h2{color:#8b5cf6;margin-bottom:15px}
+.canvas{width:300px;height:200px;background:#0f172a;border-radius:8px;margin:0 auto 15px;position:relative;cursor:crosshair;overflow:hidden}
+.preview{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#8b5cf6,#ec4899);clip-path:var(--clip)}
+.dot{position:absolute;width:12px;height:12px;background:#f59e0b;border-radius:50%;transform:translate(-50%,-50%);cursor:grab}
+.ctrl{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+button{padding:8px;background:#475569;color:white;border:none;border-radius:6px;cursor:pointer}
+.code{background:#0b1120;padding:10px;border-radius:8px;font-family:monospace;font-size:13px;color:#10b981;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>📐 CSS Clip-Path Generator</h2>
+  <div class="canvas" id="canvas"><div class="preview" id="prev"></div></div>
+  <div class="ctrl"><button onclick="addPoint()">➺ Nuqta</button><button onclick="resetClip()">↺ Tozalash</button></div>
+  <div class="code" id="css">clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);</div>
+</div>
+<script>
+let points=[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100}];
+const canvas=document.getElementById('canvas'),prev=document.getElementById('prev');
+let dragIdx=null;
+function render(){
+  const clip=`polygon(${points.map(p=>`${p.x}% ${p.y}%`).join(', ')})`;
+  prev.style.setProperty('--clip',clip);
+  document.getElementById('css').textContent=`clip-path: ${clip};`;
+  canvas.querySelectorAll('.dot').forEach(d=>d.remove());
+  points.forEach((p,i)=>{
+    const dot=document.createElement('div');dot.className='dot';
+    dot.style.left=p.x+'%';dot.style.top=p.y+'%';
+    dot.onmousedown=()=>dragIdx=i;
+    canvas.appendChild(dot);
+  });
+}
+canvas.addEventListener('mousemove',e=>{
+  if(dragIdx===null)return;
+  const rect=canvas.getBoundingClientRect();
+  points[dragIdx].x=Math.max(0,Math.min(100,((e.clientX-rect.left)/rect.width)*100));
+  points[dragIdx].y=Math.max(0,Math.min(100,((e.clientY-rect.top)/rect.height)*100));
+  render();
+});
+document.addEventListener('mouseup',()=>dragIdx=null);
+function addPoint(){points.push({x:50,y:50});render()}
+function resetClip(){points=[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100}];render()}
+render();
+</script>
+</body>
+</html>
